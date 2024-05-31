@@ -1011,6 +1011,15 @@ class GroupChatManager(ConversableAgent):
             for agent in groupchat.agents:
                 if agent != speaker:
                     self.send(message, agent, request_reply=False, silent=True)
+
+            # if we want to execute code, we end the group chat but not the whole conversation
+            if self._is_termination_msg(message):
+                return False, None
+
+            # if the reviewer decides to terminate, we end the whole conversation
+            if self._is_final_termination_msg(message):
+                return True, None
+
             if self._is_termination_msg(message) or i == groupchat.max_round - 1:
                 # The conversation is over or it's the last round
                 break
@@ -1052,7 +1061,8 @@ class GroupChatManager(ConversableAgent):
             for a in groupchat.agents:
                 a.client_cache = a.previous_cache
                 a.previous_cache = None
-        return True, None
+        # return True, None
+        return False, None
 
     async def a_run_chat(
         self,
@@ -1085,7 +1095,10 @@ class GroupChatManager(ConversableAgent):
 
             if self._is_termination_msg(message):
                 # The conversation is over
-                break
+                return False, None
+
+            if self._is_final_termination_msg(message):
+                return True, None
 
             # broadcast the message to all agents except the speaker
             for agent in groupchat.agents:
@@ -1117,7 +1130,8 @@ class GroupChatManager(ConversableAgent):
             for a in groupchat.agents:
                 a.client_cache = a.previous_cache
                 a.previous_cache = None
-        return True, None
+        # return True, None
+        return False, None
 
     def resume(
         self,

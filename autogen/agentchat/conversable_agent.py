@@ -77,6 +77,7 @@ class ConversableAgent(LLMAgent):
         default_auto_reply: Union[str, Dict] = "",
         description: Optional[str] = None,
         chat_messages: Optional[Dict[Agent, List[Dict]]] = None,
+        is_final_termination_msg: Optional[Callable[[Dict], bool]] = None,
     ):
         """
         Args:
@@ -144,6 +145,12 @@ class ConversableAgent(LLMAgent):
         self._is_termination_msg = (
             is_termination_msg
             if is_termination_msg is not None
+            # else (lambda x: content_str(x.get("content")) == "TERMINATE")
+            else (lambda x: content_str(x.get("content")) == "EXECUTE")
+        )
+        self._is_final_termination_msg = (
+            is_final_termination_msg
+            if is_final_termination_msg is not None
             else (lambda x: content_str(x.get("content")) == "TERMINATE")
         )
         # Take a copy to avoid modifying the given dict
